@@ -1,0 +1,64 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace Integration_Another
+{
+    public class MainRoutine
+    {
+        [STAThread]
+        static void Main()
+        {
+            _ = new Integration();
+        }
+    }
+    public class Variable
+    {
+        public double qn;//x axis
+        public double ih;//integration
+        public double fx;//function
+    }
+    public class Integration
+    {
+        //∮[0,1] x^2 dx
+        public Integration()
+        {
+            Processor();
+        }
+        public Task Processor()
+        {
+            
+            Variable v = new Variable();
+            var tasks = new List<Task<Variable>>();
+            for (v.qn = 0.0; v.qn < 1.0;)
+            {
+                v.fx = Function(v.qn);
+                var task = Task.Run<Variable>(() => (Integral(v)));
+                tasks.Add(task);
+                v = task.Result;
+                Console.Write("{0} {1}\n", v.qn, v.ih);
+            }
+            Task.WaitAll(tasks.ToArray());
+            return Task.WhenAll(tasks);
+        }
+        public Variable Integral(Variable v)
+        {
+            //da*da=dh*dh+dw*dw
+            //fx=dh/dw
+            //double ih;//integration
+            double dw;//delta w
+            //double dh;//delta h
+            double da;//delta a
+            da = 1.0e-6;
+            //dh = da * v.fx * Math.Sqrt(1.0 / (1.0 + v.fx * v.fx));
+            dw = da * Math.Sqrt(1.0 / (1.0 + v.fx * v.fx));
+            v.ih += dw * v.fx;
+            v.qn += dw;
+
+            return v;
+        }
+        public double Function(double x)
+        {
+            return x * x;
+        }
+    }
+}
